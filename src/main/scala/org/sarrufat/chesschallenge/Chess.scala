@@ -20,6 +20,8 @@ case class Board(M: Int, N: Int) {
     if (checkFreePos(pos)) {
       pt match {
         case 'K' ⇒ pieces += pos -> new King(pos, this)
+        case 'B' ⇒ pieces += pos -> new Bishop(pos, this)
+        //        case 'Q' ⇒ pieces += pos -> new Queen(pos, this)
       }
     }
     pieces.get(pos)
@@ -35,11 +37,28 @@ sealed trait Piece {
    * method for getting the threatening positions on the board
    */
   def threatening: Positions
+
+  /**
+   * Compute position increment by vector 'incr'
+   */
+  final protected def vincr(pos: Pos, incr: Pos): Positions = {
+    val newPos = (pos._1 + incr._1, pos._2 + incr._2)
+    if (board.isInside(newPos))
+      newPos +: vincr(newPos, incr)
+    else
+      List()
+  }
 }
 
-class King(p: Pos, b: Board) extends Piece {
+/**
+ * Base of all pieces
+ */
+abstract class PieceBase(p: Pos, b: Board) extends Piece {
   val pos = p
   val board = b
+}
+
+class King(p: Pos, b: Board) extends PieceBase(p, b) {
   def threatening: Positions = {
     val ret = for {
       x ← -1 to 1
@@ -48,7 +67,21 @@ class King(p: Pos, b: Board) extends Piece {
     ret filter { p ⇒ p != pos && board.isInside(p) } toList
   }
 }
+
+/**
+ * Trait with Bishop directions
+ */
+sealed trait BishopMov extends Piece {
+  val northEst: Direction = () ⇒ vincr(pos, (1, -1))
+  val southWest: Direction = () ⇒ vincr(pos, (-1, 1))
+  val southEst: Direction = () ⇒ vincr(pos, (1, 1))
+  val northWest: Direction = () ⇒ vincr(pos, (-1, -1))
+}
+class Bishop(p: Pos, b: Board) extends PieceBase(p, b) with BishopMov {
+  def threatening: Positions = northEst() ++ southEst() ++ southWest() ++ northWest()
+}
+
 //class Queen extends Piece
-//class Bishop extends Piece
+
 //class Rook extends Piece
 //class Knight extends Piece
