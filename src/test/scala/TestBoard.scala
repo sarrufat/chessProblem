@@ -55,4 +55,22 @@ class TestBoard extends FunSuite with Matchers {
       assert(res === List((2, 1), (2, 0), (3, 2), (4, 2), (2, 3), (2, 4), (1, 2), (0, 2)))
     }
   }
+  test(" A 5x5 board and Qeen on (2,2) Threatening") {
+    val b3x3 = Board(5, 5)
+    val ko = b3x3.newPiece('Q', (2, 2))
+    ko should not be None
+    ko.foreach { k ⇒
+      val res = k.threatening
+      assert(res === List((2, 1), (2, 0), (3, 1), (4, 0), (3, 2), (4, 2), (3, 3), (4, 4), (2, 3), (2, 4), (1, 3), (0, 4), (1, 2), (0, 2), (1, 1), (0, 0)))
+    }
+  }
+  test(" A 5x5 board and Knight on (2,2) Threatening") {
+    val b3x3 = Board(5, 5)
+    val ko = b3x3.newPiece('N', (2, 2))
+    ko should not be None
+    ko.foreach { k ⇒
+      val res = k.threatening
+      assert(res === List((3, 0), (4, 1), (4, 3), (3, 4), (1, 4), (0, 3), (0, 1), (1, 0)))
+    }
+  }
 }

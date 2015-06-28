@@ -22,7 +22,8 @@ case class Board(M: Int, N: Int) {
         case 'K' ⇒ pieces += pos -> new King(pos, this)
         case 'B' ⇒ pieces += pos -> new Bishop(pos, this)
         case 'R' ⇒ pieces += pos -> new Rook(pos, this)
-        //        case 'Q' ⇒ pieces += pos -> new Queen(pos, this)
+        case 'Q' ⇒ pieces += pos -> new Queen(pos, this)
+        case 'N' ⇒ pieces += pos -> new Knight(pos, this)
       }
     }
     pieces.get(pos)
@@ -40,7 +41,7 @@ sealed trait Piece {
   def threatening: Positions
 
   /**
-   * Compute position increment by vector 'incr'
+   * Recursively compute position increments by vector 'incr'
    */
   final protected def vincr(pos: Pos, incr: Pos): Positions = {
     val newPos = (pos._1 + incr._1, pos._2 + incr._2)
@@ -95,7 +96,16 @@ sealed trait RookMov extends Piece {
 class Rook(p: Pos, b: Board) extends PieceBase(p, b) with RookMov {
   def threatening: Positions = north() ++ est() ++ south() ++ west()
 }
-//class Queen extends Piece
+class Queen(p: Pos, b: Board) extends PieceBase(p, b) with BishopMov with RookMov {
+  def threatening: Positions = north() ++ northEst() ++ est() ++ southEst() ++ south() ++ southWest() ++ west() ++ northWest()
+}
 
-//class Rook extends Piece
-//class Knight extends Piece
+object Knight {
+  private lazy val movVectors = List((1, -2), (2, -1), (2, 1), (1, 2), (-1, 2), (-2, 1), (-2, -1), (-1, -2))
+}
+class Knight(p: Pos, b: Board) extends PieceBase(p, b) {
+  def threatening: Positions = {
+    val ret = for { vec ← Knight.movVectors } yield { (pos._1 + vec._1, pos._2 + vec._2) }
+    ret filter { p ⇒ board.isInside(p) } toList
+  }
+}
