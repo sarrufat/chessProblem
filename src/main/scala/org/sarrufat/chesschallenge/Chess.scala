@@ -21,6 +21,7 @@ case class Board(M: Int, N: Int) {
       pt match {
         case 'K' ⇒ pieces += pos -> new King(pos, this)
         case 'B' ⇒ pieces += pos -> new Bishop(pos, this)
+        case 'R' ⇒ pieces += pos -> new Rook(pos, this)
         //        case 'Q' ⇒ pieces += pos -> new Queen(pos, this)
       }
     }
@@ -81,6 +82,19 @@ class Bishop(p: Pos, b: Board) extends PieceBase(p, b) with BishopMov {
   def threatening: Positions = northEst() ++ southEst() ++ southWest() ++ northWest()
 }
 
+/**
+ * Trait with Rook directions
+ */
+sealed trait RookMov extends Piece {
+  val north: Direction = () ⇒ vincr(pos, (0, -1))
+  val south: Direction = () ⇒ vincr(pos, (0, 1))
+  val est: Direction = () ⇒ vincr(pos, (1, 0))
+  val west: Direction = () ⇒ vincr(pos, (-1, 0))
+}
+
+class Rook(p: Pos, b: Board) extends PieceBase(p, b) with RookMov {
+  def threatening: Positions = north() ++ est() ++ south() ++ west()
+}
 //class Queen extends Piece
 
 //class Rook extends Piece
