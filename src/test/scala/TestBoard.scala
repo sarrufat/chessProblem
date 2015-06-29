@@ -12,6 +12,12 @@ class TestBoard extends FunSuite with Matchers {
       Board(2, -2)
     }
   }
+  test("try") {
+    val b4x4 = Board(4, 4)
+    b4x4.newPiece('R', (0, 1))
+    b4x4.newPiece('R', (1, 0))
+    assert(b4x4.tryNewPiece('N', (0, 0)) == None)
+  }
 
   test(" A 3x3 board and King on (0,0) Threatening") {
     val b3x3 = Board(3, 3)

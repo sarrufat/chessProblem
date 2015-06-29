@@ -10,6 +10,27 @@ class Solver(dimension: Dimension, pieces: Seq[PieceParam]) {
   } yield p._2).toList
 
   assert(dimension._1 > 2 && dimension._2 > 2)
+  def printresult(res: ResultPositions) {
+    println("")
+    def printlnsep = {
+      val headS = for (x ← 0 until dimension._1) yield "-+"
+      println("\n+" + headS.mkString)
+    }
+    for (y ← 0 until dimension._2) {
+      printlnsep
+      print('|')
+      for (x ← 0 until dimension._1) {
+        val pos = (x, y)
+        res.find { p ⇒ p._1 == pos } match {
+          case Some((_, k)) ⇒ print(k)
+          case None         ⇒ print('*')
+        }
+        print('|')
+      }
+    }
+    printlnsep
+    println("")
+  }
   def solve: Results = {
     var results: Results = List[ResultPositions]()
     val targetResLenght = seqPieces.length
@@ -25,7 +46,7 @@ class Solver(dimension: Dimension, pieces: Seq[PieceParam]) {
           }
           case Nil ⇒ if (workBoard.isSolved(targetResLenght)) results = results :+ workBoard.toResult
         }
-        workBoard.getNextPossiblePosFromPos(pos) match {
+        board.getNextPossiblePosFromPos(pos) match {
           case Some(p) ⇒ recSolver(p, board, pieces)
           case None    ⇒
         }
@@ -34,7 +55,10 @@ class Solver(dimension: Dimension, pieces: Seq[PieceParam]) {
       recSolver((0, 0), board, pieces)
     }
     internalSolver(seqPieces)
-    results
+    // remove duplicates
+    val resMap = results.groupBy { x ⇒ x.toString }
+    val res = for (m ← resMap) yield m._2.head
+    res.toList
   }
 }
 /**

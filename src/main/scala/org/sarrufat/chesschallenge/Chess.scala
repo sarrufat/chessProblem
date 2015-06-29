@@ -28,7 +28,7 @@ case class Board(M: Int, N: Int) {
   // Pieces on board by position
   var pieces = Map[Pos, Piece]().empty
   def isInside(pos: Pos) = pos._1 >= 0 && pos._1 < M && pos._2 >= 0 && pos._2 < N
-  def checkFreePos(pos: Pos) = pieces.get(pos) == None
+  def checkFreePos(pos: Pos) = pieces.get(pos) == None && !nonFree.contains(pos)
   /**
    * Creates a new piece on position if possible
    * pt represents the type (K, Q, B R, N)
@@ -48,14 +48,14 @@ case class Board(M: Int, N: Int) {
       None
   }
   def removePiece(piece: Piece) = pieces = pieces - piece.pos
+  def nonFree = (pieces map { p ⇒ (p._1 +: p._2.threatening) }).flatten.toSeq
   def getPossibleCells = {
     // nonFree = occopied + threatening
-    val nonFree = (pieces map { p ⇒ (p._1 +: p._2.threatening) }).flatten.toSeq
     Board.genCells(M, N).filterNot(p ⇒ nonFree contains (p)).sortBy(p ⇒ p).toList
   }
   def getNextPossiblePosFromPos(pos: Pos): Option[Pos] = {
     val nextList = getPossibleCells
-    nextList.find { p ⇒ (p._1 + p._2 * N) > (pos._1 + pos._2 * N) }
+    nextList.find { p ⇒ (p._1 * M + p._2) > (pos._1 * M + pos._2) }
 
   }
   /**
@@ -74,6 +74,14 @@ case class Board(M: Int, N: Int) {
   }
   def isSolved(ntarg: Int) = pieces.size == ntarg
   def toResult = (pieces.map { piece ⇒ (piece._1, piece._2.toChar) }).toList.sortBy(p ⇒ p._1)
+  override def toString = {
+    val result = toResult
+    var retStr = ""
+    for (res ← result) {
+      retStr += s"${res} "
+    }
+    retStr
+  }
 }
 /*
  * A generic piece
