@@ -1,13 +1,30 @@
 package org.sarrufat.chesschallenge
 
+object Board {
+  /*
+   *
+   */
+  def genCells(M: Int, N: Int) = for {
+    x ← 0 until M
+    y ← 0 until N
+  } yield (x, y)
+  /*
+   *  Copy factory
+   */
+  def apply(b: Board): Board = {
+    val cb = Board(b.M, b.N)
+    cb.pieces = Map(b.pieces.toSeq: _*)
+    cb
+  }
+}
 /**
  *  This class represents the board's game
  */
 
 case class Board(M: Int, N: Int) {
-
   assert(M > 0, "Board dimension must be a positive integer")
   assert(N > 0, "Board dimension must be a positive integer")
+  private lazy val allPos = Board.genCells(M, N)
   // Pieces on board by position
   var pieces = Map[Pos, Piece]().empty
   def isInside(pos: Pos) = pos._1 >= 0 && pos._1 < M && pos._2 >= 0 && pos._2 < N
@@ -24,10 +41,39 @@ case class Board(M: Int, N: Int) {
         case 'R' ⇒ pieces += pos -> new Rook(pos, this)
         case 'Q' ⇒ pieces += pos -> new Queen(pos, this)
         case 'N' ⇒ pieces += pos -> new Knight(pos, this)
+        case _   ⇒ throw new Exception(s"Unknown piece type '$pt'")
       }
-    }
-    pieces.get(pos)
+      pieces.get(pos)
+    } else
+      None
   }
+  def removePiece(piece: Piece) = pieces = pieces - piece.pos
+  def getPossibleCells = {
+    // nonFree = occopied + threatening
+    val nonFree = (pieces map { p ⇒ (p._1 +: p._2.threatening) }).flatten.toSeq
+    Board.genCells(M, N).filterNot(p ⇒ nonFree contains (p)).sortBy(p ⇒ p).toList
+  }
+  def getNextPossiblePosFromPos(pos: Pos): Option[Pos] = {
+    val nextList = getPossibleCells
+    nextList.find { p ⇒ (p._1 + p._2 * N) > (pos._1 + pos._2 * N) }
+
+  }
+  /**
+   * Tries to Create a new piece on position if possible and no threatening the other pieces on the board
+   */
+  def tryNewPiece(pt: Char, pos: Pos): Option[Piece] = {
+    val np = newPiece(pt, pos)
+    np match {
+      case Some(curPiece) ⇒ if (curPiece.threatening exists { p ⇒ pieces contains (p) }) {
+        removePiece(curPiece)
+        None
+      } else
+        np
+      case None ⇒ None
+    }
+  }
+  def isSolved(ntarg: Int) = pieces.size == ntarg
+  def toResult = (pieces.map { piece ⇒ (piece._1, piece._2.toChar) }).toList.sortBy(p ⇒ p._1)
 }
 /*
  * A generic piece
@@ -45,11 +91,12 @@ sealed trait Piece {
    */
   final protected def vincr(pos: Pos, incr: Pos): Positions = {
     val newPos = (pos._1 + incr._1, pos._2 + incr._2)
-    if (board.isInside(newPos))
+    if (board isInside (newPos))
       newPos +: vincr(newPos, incr)
     else
       List()
   }
+  def toChar: Char
 }
 
 /**
@@ -68,6 +115,7 @@ class King(p: Pos, b: Board) extends PieceBase(p, b) {
     } yield (pos._1 + x, pos._2 + y)
     ret filter { p ⇒ p != pos && board.isInside(p) } toList
   }
+  def toChar: Char = 'K'
 }
 
 /**
@@ -81,6 +129,7 @@ sealed trait BishopMov extends Piece {
 }
 class Bishop(p: Pos, b: Board) extends PieceBase(p, b) with BishopMov {
   def threatening: Positions = northEst() ++ southEst() ++ southWest() ++ northWest()
+  def toChar: Char = 'B'
 }
 
 /**
@@ -95,9 +144,11 @@ sealed trait RookMov extends Piece {
 
 class Rook(p: Pos, b: Board) extends PieceBase(p, b) with RookMov {
   def threatening: Positions = north() ++ est() ++ south() ++ west()
+  def toChar: Char = 'R'
 }
 class Queen(p: Pos, b: Board) extends PieceBase(p, b) with BishopMov with RookMov {
   def threatening: Positions = north() ++ northEst() ++ est() ++ southEst() ++ south() ++ southWest() ++ west() ++ northWest()
+  def toChar: Char = 'Q'
 }
 
 object Knight {
@@ -106,6 +157,7 @@ object Knight {
 class Knight(p: Pos, b: Board) extends PieceBase(p, b) {
   def threatening: Positions = {
     val ret = for { vec ← Knight.movVectors } yield { (pos._1 + vec._1, pos._2 + vec._2) }
-    ret filter { p ⇒ board.isInside(p) } toList
+    ret filter { p ⇒ board isInside (p) } toList
   }
+  def toChar: Char = 'N'
 }
