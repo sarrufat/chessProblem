@@ -2,6 +2,7 @@
 
  val scalacheck = "org.scalacheck" %% "scalacheck" % "1.12.4" % "test"
  val scalatest = "org.scalatest" % "scalatest_2.11" % "2.2.4" % "test"
+ val scopt = "com.github.scopt" %% "scopt" % "3.3.0"
 
 lazy val commonSettings = Seq(
   organization := "org.sarrufat",
@@ -15,6 +16,7 @@ lazy val root = (project in file(".")).
   settings(
     name := "ChessChallenge",
     libraryDependencies += scalacheck,
-     libraryDependencies += scalatest
+    libraryDependencies += scalatest,
+	libraryDependencies += scopt 
   )
 

@@ -4,6 +4,7 @@ package org.sarrufat.chesschallenge
  * The solver class of Chess Challenge
  */
 class Solver(dimension: Dimension, pieces: Seq[PieceParam]) {
+
   val seqPieces = (for {
     p ← pieces
     n ← p._1 to 1 by -1
@@ -56,9 +57,19 @@ class Solver(dimension: Dimension, pieces: Seq[PieceParam]) {
     }
     internalSolver(seqPieces)
     // remove duplicates
-    val resMap = results.groupBy { x ⇒ x.toString }
+    val resMap = results.groupBy { _.toString }
     val res = for (m ← resMap) yield m._2.head
     res.toList
+  }
+  def verboseSolve(print: Boolean) = {
+    def verbosePieces = {
+      val names = Map('K' -> "Kings", 'Q' -> "Queens", 'B' -> "Bishops", 'R' -> "Rooks", 'N' -> "Knights")
+      pieces.map { p ⇒ p._1 + s" ${names.get(p._2).get} " } mkString (" and ")
+    }
+    println(s"Trying to solve ${dimension._1}X${dimension._2} board with ${verbosePieces} pieces...")
+    val results = solve
+    println(s"Found ${results.length} solutions")
+    if (print) results.foreach { printresult(_) }
   }
 }
 /**
@@ -71,5 +82,15 @@ object Solver {
    * @param pieces
    * @return
    */
-  def apply(dim: Dimension)(pieces: PieceParam*) = new Solver(dim, pieces)
+  def apply(dim: Dimension)(pieces: PieceParam*): Solver = new Solver(dim, pieces)
+
+  /**
+   * Creates a solver from configuration
+   * @param conf
+   * @return
+   */
+  def apply(conf: Config): Solver = {
+    val pieces = conf.pieces.map(cp ⇒ (cp._2, cp._1.charAt(0))).toSeq
+    apply((conf.dimM, conf.dimN))(pieces: _*)
+  }
 }
