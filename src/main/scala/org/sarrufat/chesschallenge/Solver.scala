@@ -94,7 +94,7 @@ class Solver(dimension: Dimension, pieces: Seq[PieceParam]) {
       val names = Map('K' -> "Kings", 'Q' -> "Queens", 'B' -> "Bishops", 'R' -> "Rooks", 'N' -> "Knights")
       pieces.map { p ⇒ p._1 + s" ${names.get(p._2).get} " } mkString (" and ")
     }
-    println(s"Trying to solve ${dimension._1}X${dimension._2} board with ${verbosePieces} pieces...")
+    println(s"Trying to solve ${dimension._1}X${dimension._2} board with ${verbosePieces} ...")
     val results = solve
     println(s"Found ${results.length} solutions")
     if (print) results.foreach { printresult(_) }

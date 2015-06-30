@@ -116,13 +116,14 @@ abstract class PieceBase(p: Pos, b: Board) extends Piece {
 }
 
 class King(p: Pos, b: Board) extends PieceBase(p, b) {
-  def threatening: Positions = {
+  private lazy val _threatening = {
     val ret = for {
       x ← -1 to 1
       y ← -1 to 1
     } yield (pos._1 + x, pos._2 + y)
     ret filter { p ⇒ p != pos && board.isInside(p) } toList
   }
+  def threatening: Positions = _threatening
   def toChar: Char = 'K'
 }
 
@@ -136,7 +137,8 @@ sealed trait BishopMov extends Piece {
   val northWest: Direction = () ⇒ vincr(pos, (-1, -1))
 }
 class Bishop(p: Pos, b: Board) extends PieceBase(p, b) with BishopMov {
-  def threatening: Positions = northEst() ++ southEst() ++ southWest() ++ northWest()
+  private lazy val _threatening = northEst() ++ southEst() ++ southWest() ++ northWest()
+  def threatening: Positions = _threatening
   def toChar: Char = 'B'
 }
 
@@ -151,11 +153,13 @@ sealed trait RookMov extends Piece {
 }
 
 class Rook(p: Pos, b: Board) extends PieceBase(p, b) with RookMov {
-  def threatening: Positions = north() ++ est() ++ south() ++ west()
+  private lazy val _threatening = north() ++ est() ++ south() ++ west()
+  def threatening: Positions = _threatening
   def toChar: Char = 'R'
 }
 class Queen(p: Pos, b: Board) extends PieceBase(p, b) with BishopMov with RookMov {
-  def threatening: Positions = north() ++ northEst() ++ est() ++ southEst() ++ south() ++ southWest() ++ west() ++ northWest()
+  private lazy val _threatening = north() ++ northEst() ++ est() ++ southEst() ++ south() ++ southWest() ++ west() ++ northWest()
+  def threatening: Positions = _threatening
   def toChar: Char = 'Q'
 }
 
@@ -163,9 +167,10 @@ object Knight {
   private lazy val movVectors = List((1, -2), (2, -1), (2, 1), (1, 2), (-1, 2), (-2, 1), (-2, -1), (-1, -2))
 }
 class Knight(p: Pos, b: Board) extends PieceBase(p, b) {
-  def threatening: Positions = {
+  private lazy val _threatening = {
     val ret = for { vec ← Knight.movVectors } yield { (pos._1 + vec._1, pos._2 + vec._2) }
     ret filter { p ⇒ board isInside (p) } toList
   }
+  def threatening: Positions = _threatening
   def toChar: Char = 'N'
 }

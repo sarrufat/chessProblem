@@ -4,7 +4,7 @@ package object chesschallenge {
 
   // Postion on the board
   type Pos = (Int, Int)
-  type Positions = List[Pos]
+  type Positions = Seq[Pos]
   type Direction = () ⇒ Positions
   // types used by solver
   type Dimension = (Int, Int)
