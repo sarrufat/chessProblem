@@ -1,5 +1,7 @@
 package org.sarrufat.chesschallenge
 
+import scala.annotation.tailrec
+
 /**
  * The solver class of Chess Challenge
  */
@@ -11,6 +13,19 @@ class Solver(dimension: Dimension, pieces: Seq[PieceParam]) {
   } yield p._2).toList
 
   assert(dimension._1 > 2 && dimension._2 > 2)
+  /**
+   * Print result as:
+   * +-+-+-+-+
+   * |*|R|*|*|
+   * +-+-+-+-+
+   * |N|*|N|*|
+   * +-+-+-+-+
+   * |*|*|*|R|
+   * +-+-+-+-+
+   * |N|*|N|*|
+   * +-+-+-+-+
+   * @param res
+   */
   def printresult(res: ResultPositions) {
     println("")
     def printlnsep = {
@@ -32,23 +47,36 @@ class Solver(dimension: Dimension, pieces: Seq[PieceParam]) {
     printlnsep
     println("")
   }
+  /**
+   * This algorithm solver is a recursive algorithm with backtracking.
+   * @return
+   */
   def solve: Results = {
     var results: Results = List[ResultPositions]()
     val targetResLenght = seqPieces.length
     def internalSolver(pieces: List[Char]) = {
+      // Recursive Solver
       def recSolver(pos: Pos, board: Board, pieces: List[Char]): Unit = {
+        // Copy the actual board
         val workBoard = Board(board)
         pieces match {
+          // Non empty pieces
           case ptype :: tail ⇒ {
+            // try to create a new piece on this position
             workBoard.tryNewPiece(ptype, pos) match {
+              // Success: then compute the next deeper level of the tree if more pieces to place on the board
               case Some(piece) ⇒ recSolver((0, 0), workBoard, tail)
+              // Not possible
               case None        ⇒
             }
           }
+          // No more levels: if solved add to results
           case Nil ⇒ if (workBoard.isSolved(targetResLenght)) results = results :+ workBoard.toResult
         }
+        // Compute next possible (non threatening) position
         board.getNextPossiblePosFromPos(pos) match {
           case Some(p) ⇒ recSolver(p, board, pieces)
+          // No more positions
           case None    ⇒
         }
       }
