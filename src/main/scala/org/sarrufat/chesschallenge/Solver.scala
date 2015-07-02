@@ -122,7 +122,7 @@ object Solver {
    * @return
    */
   def apply(conf: Config): Solver = {
-    val pieces = conf.pieces.map(cp ⇒ (cp._2, cp._1.charAt(0))).toSeq
+    val pieces = conf.pieces.toSeq.map(cp ⇒ (cp._2, cp._1.charAt(0))).toSeq
     apply((conf.dimM, conf.dimN))(pieces: _*)
   }
 }
