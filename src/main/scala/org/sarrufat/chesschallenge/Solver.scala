@@ -55,35 +55,39 @@ class Solver(dimension: Dimension, pieces: Seq[PieceParam]) {
     var results: Results = List[ResultPositions]()
     val targetResLenght = seqPieces.length
     def internalSolver(pieces: List[Char]) = {
+      val board = Board(dimension._1, dimension._2)
       // Recursive Solver
-      def recSolver(pos: Pos, board: Board, pieces: List[Char]): Unit = {
-        // Copy the actual board
-        val workBoard = Board(board)
-        pieces match {
-          // Non empty pieces
-          case ptype :: tail ⇒ {
-            // try to create a new piece on this position
-            workBoard.tryNewPiece(ptype, pos) match {
-              // Success: then compute the next deeper level of the tree if more pieces to place on the board
-              case Some(piece) ⇒ recSolver((0, 0), workBoard, tail)
-              // Not possible
-              case None        ⇒
+      def recSolver(positions: Positions, pieces: List[Char]): Unit = {
+        // Compute next possible (non threatening) positions
+        for (pos ← positions) {
+          // Copy the actual board
+          pieces match {
+            // Non empty pieces
+            case ptype :: tail ⇒ {
+              // try to create a new piece on this position
+              board.tryNewPiece(ptype, pos) match {
+                // Success: then compute the next deeper level of the tree if more pieces to place on the board
+                case Some(piece) ⇒
+                  if (board.isSolved(targetResLenght))
+                    results = results :+ board.toResult
+                  else
+                    recSolver(board.getPossibleCells, tail)
+                  // Remove pieces -- shared array between probes
+                  board.removePiece(piece)
+                // Not possible
+                case None ⇒
+              }
             }
+            // No more levels: if solved add to results
+            case Nil ⇒ // if (workBoard.isSolved(targetResLenght)) results = results :+ workBoard.toResult
           }
-          // No more levels: if solved add to results
-          case Nil ⇒ if (workBoard.isSolved(targetResLenght)) results = results :+ workBoard.toResult
-        }
-        // Compute next possible (non threatening) position
-        board.getNextPossiblePosFromPos(pos) match {
-          case Some(p) ⇒ recSolver(p, board, pieces)
-          // No more positions
-          case None    ⇒
         }
       }
-      val board = Board(dimension._1, dimension._2)
-      recSolver((0, 0), board, pieces)
+      recSolver(board.getPossibleCells, pieces)
+      board.tryCounter
     }
-    internalSolver(seqPieces)
+    val tc = internalSolver(seqPieces)
+    //    println("tryCounter = " + tc)
     // remove duplicates
     val resMap = results.groupBy { _.toString }
     val res = for (m ← resMap) yield m._2.head

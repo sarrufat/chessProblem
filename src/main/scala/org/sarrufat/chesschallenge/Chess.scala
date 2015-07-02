@@ -8,14 +8,6 @@ object Board {
     x ← 0 until M
     y ← 0 until N
   } yield (x, y)
-  /*
-   *  Copy factory
-   */
-  def apply(b: Board): Board = {
-    val cb = Board(b.M, b.N)
-    cb.pieces = Map(b.pieces.toSeq: _*)
-    cb
-  }
 }
 /**
  *  This class represents the board's game
@@ -26,9 +18,13 @@ case class Board(M: Int, N: Int) {
   assert(N > 0, "Board dimension must be a positive integer")
   private lazy val allPos = Board.genCells(M, N)
   // Pieces on board by position
-  var pieces = Map[Pos, Piece]().empty
+  //  var pieces = Map[Pos, Piece]().empty
+  val pMatrix = Array.ofDim[Piece](M, N)
+  // Tries count
+  var tryCounter = 0l
+
   def isInside(pos: Pos) = pos._1 >= 0 && pos._1 < M && pos._2 >= 0 && pos._2 < N
-  def checkFreePos(pos: Pos) = pieces.get(pos) == None && !nonFree.contains(pos)
+  def checkFreePos(pos: Pos) = pMatrix(pos._1)(pos._2) == null && !nonFree.contains(pos)
   /**
    * Creates a new piece on position if possible
    * pt represents the type (K, Q, B R, N)
@@ -36,35 +32,39 @@ case class Board(M: Int, N: Int) {
   def newPiece(pt: Char, pos: Pos): Option[Piece] = {
     if (checkFreePos(pos)) {
       pt match {
-        case 'K' ⇒ pieces += pos -> new King(pos, this)
-        case 'B' ⇒ pieces += pos -> new Bishop(pos, this)
-        case 'R' ⇒ pieces += pos -> new Rook(pos, this)
-        case 'Q' ⇒ pieces += pos -> new Queen(pos, this)
-        case 'N' ⇒ pieces += pos -> new Knight(pos, this)
+        case 'K' ⇒ pMatrix(pos._1)(pos._2) = new King(pos, this)
+        case 'B' ⇒ pMatrix(pos._1)(pos._2) = new Bishop(pos, this)
+        case 'R' ⇒ pMatrix(pos._1)(pos._2) = new Rook(pos, this)
+        case 'Q' ⇒ pMatrix(pos._1)(pos._2) = new Queen(pos, this)
+        case 'N' ⇒ pMatrix(pos._1)(pos._2) = new Knight(pos, this)
         case _   ⇒ throw new Exception(s"Unknown piece type '$pt'")
       }
-      pieces.get(pos)
+      Some(pMatrix(pos._1)(pos._2))
     } else
       None
   }
-  def removePiece(piece: Piece) = pieces = pieces - piece.pos
-  def nonFree = (pieces map { p ⇒ (p._1 +: p._2.threatening) }).flatten.toSeq
-  def getPossibleCells = {
-    // nonFree = occopied + threatening
-    Board.genCells(M, N).filterNot(p ⇒ nonFree contains (p)).sortBy(p ⇒ p).toList
+  def removePiece(piece: Piece) = pMatrix(piece.pos._1)(piece.pos._2) = null
+  def nonFree = {
+    val nfs = for {
+      x ← pMatrix.indices
+      y ← pMatrix(x).indices
+      if (pMatrix(x)(y) != null)
+    } yield {
+      (x, y) +: pMatrix(x)(y).threatening
+    }
+    nfs.flatten.toSeq
   }
-  def getNextPossiblePosFromPos(pos: Pos): Option[Pos] = {
-    val nextList = getPossibleCells
-    nextList.find { p ⇒ (p._1 * M + p._2) > (pos._1 * M + pos._2) }
+  // (pieces map { p ⇒ (p._1 +: p._2.threatening) }).flatten.toSeq
+  def getPossibleCells = Board.genCells(M, N).filterNot(p ⇒ nonFree contains (p)).toList
 
-  }
   /**
    * Tries to Create a new piece on position if possible and no threatening the other pieces on the board
    */
   def tryNewPiece(pt: Char, pos: Pos): Option[Piece] = {
+    tryCounter += 1
     val np = newPiece(pt, pos)
     np match {
-      case Some(curPiece) ⇒ if (curPiece.threatening exists { p ⇒ pieces contains (p) }) {
+      case Some(curPiece) ⇒ if (curPiece.threatening exists { p ⇒ pMatrix(p._1)(p._2) != null }) {
         removePiece(curPiece)
         None
       } else
@@ -72,8 +72,17 @@ case class Board(M: Int, N: Int) {
       case None ⇒ None
     }
   }
-  def isSolved(ntarg: Int) = pieces.size == ntarg
-  def toResult = (pieces.map { piece ⇒ (piece._1, piece._2.toChar) }).toList.sortBy(p ⇒ p._1)
+  def isSolved(ntarg: Int) = pMatrix.flatten.count(p ⇒ p != null) == ntarg
+  def toResult = {
+    val nfs = for {
+      x ← pMatrix.indices
+      y ← pMatrix(x).indices
+      if (pMatrix(x)(y) != null)
+    } yield {
+      ((x, y), pMatrix(x)(y).toChar)
+    }
+    nfs.toList.sortBy(p ⇒ p._1)
+  }
   override def toString = {
     val result = toResult
     var retStr = ""
