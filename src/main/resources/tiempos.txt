@@ -1,0 +1,10 @@
+
+Trying to solve 4X4 board with 2 Rooks  and 4 Knights  ...
+Found 8 solutions in 0.278 secs.
+
+Trying to solve 5X5 board with 5 Queens  ...
+Found 10 solutions in 1.166 secs.
+
+Trying to solve 6X6 board with 6 Queens  ...
+Found 4 solutions in 14.714 secs.
+

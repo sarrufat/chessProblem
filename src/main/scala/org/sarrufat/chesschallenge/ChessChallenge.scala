@@ -4,7 +4,7 @@ package org.sarrufat.chesschallenge
  * Configuration class
  *
  */
-case class Config(dimM: Int = 4, dimN: Int = 4, pieces: Map[String, Int] = Map().empty, printResult: Boolean = false)
+case class Config(dimM: Int = 4, dimN: Int = 4, pieces: Map[String, Int] = Map().empty, printResult: Boolean = false, timing: Boolean = false)
 /**
  * Options for parsing args. I'm using scopt, a little command line options parsing library.
  *
@@ -24,6 +24,7 @@ object Options {
         }
       }
       opt[Unit]('o', "output") text ("output results") action ((_, c) ⇒ c.copy(printResult = true))
+      opt[Unit]('t', "time") text ("timing") action ((_, c) ⇒ c.copy(timing = true))
     }
   }
 }
@@ -34,7 +35,7 @@ object ChessChallenge extends App {
   Options().parse(args, Config()) match {
     case Some(conf) ⇒
       val solver = Solver(conf)
-      solver.verboseSolve(conf.printResult)
+      solver.verboseSolve(conf.printResult, conf.timing)
     case None ⇒
   }
 }

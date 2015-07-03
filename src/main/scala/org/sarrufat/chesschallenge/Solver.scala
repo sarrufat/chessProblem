@@ -93,14 +93,20 @@ class Solver(dimension: Dimension, pieces: Seq[PieceParam]) {
     val res = for (m ← resMap) yield m._2.head
     res.toList
   }
-  def verboseSolve(print: Boolean) = {
+  def verboseSolve(print: Boolean, timing: Boolean) = {
     def verbosePieces = {
       val names = Map('K' -> "Kings", 'Q' -> "Queens", 'B' -> "Bishops", 'R' -> "Rooks", 'N' -> "Knights")
       pieces.map { p ⇒ p._1 + s" ${names.get(p._2).get} " } mkString (" and ")
     }
     println(s"Trying to solve ${dimension._1}X${dimension._2} board with ${verbosePieces} ...")
+    val t0 = System.currentTimeMillis();
     val results = solve
-    println(s"Found ${results.length} solutions")
+    val t1 = System.currentTimeMillis();
+    if (timing)
+      println(s"Found ${results.length} solutions in " + (t1 - t0).toDouble / 1000.0 + " secs.")
+    else
+      println(s"Found ${results.length} solutions")
+
     if (print) results.foreach { printresult(_) }
   }
 }
