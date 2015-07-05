@@ -34,7 +34,7 @@ object Options {
 object ChessChallenge extends App {
   Options().parse(args, Config()) match {
     case Some(conf) ⇒
-      val solver = Solver(conf)
+      val solver = Solver2(conf)
       solver.verboseSolve(conf.printResult, conf.timing)
     case None ⇒
   }
