@@ -64,16 +64,20 @@ class Solver2(dimension: Dimension, pieces: Seq[PieceParam]) {
     }
     tv
   }
+  /*
+   * Pre calculated vectors with the threatening positions by each position of the board and piece type
+   */
   private lazy val threateningVectors = {
-    // For each piece type
+    // For each piece type al MxN htreatening positions
     (for (pp ← pieces) yield (pp._2 -> threateningPT(pp._2))).toMap
   }
   /**
-   * This algorithm solver is a recursive algorithm with backtracking.
+   * This algorithm solver is a recursive algorithm with
    * @return
    */
   def solve: Results = {
     var results: Results = List[ResultPositions]()
+    def posToIndex(pos: Pos) = pos._1 * dimension._2 + pos._2
     def recResul(keys: String, thr: Vector[Pos], resPos: ResultPositions): Unit = {
 
       for {
@@ -82,10 +86,11 @@ class Solver2(dimension: Dimension, pieces: Seq[PieceParam]) {
         if (!resPos.map(_._1).contains((x, y)) && !thr.contains((x, y)))
       } {
         val k = keys(0)
-        val idx = x * dimension._2 + y
+        val idx = posToIndex(x, y)
         val lastPos = resPos.last
-        val idxlp = lastPos._1._1 * dimension._2 + lastPos._1._2
-
+        // Index of last position
+        val idxlp = posToIndex(lastPos._1)
+        // Skip permutation if already calculated tree
         if (lastPos._2 != k || idx > idxlp) {
           val thrK = threateningVectors.get(k).get(idx)
           // Verify bno threatenin
@@ -107,7 +112,7 @@ class Solver2(dimension: Dimension, pieces: Seq[PieceParam]) {
       x ← 0 until dimension._1
       y ← 0 until dimension._2
     } {
-      val idx = x * dimension._2 + y
+      val idx = posToIndex(x, y)
       recResul(seqPieces.drop(1), thrK(idx), List(((x, y), k)))
     }
     val resMap = results.groupBy { _.mkString }
