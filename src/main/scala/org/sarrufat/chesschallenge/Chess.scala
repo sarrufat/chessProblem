@@ -55,7 +55,7 @@ case class Board(M: Int, N: Int) {
     nfs.flatten.toSeq
   }
   // (pieces map { p ⇒ (p._1 +: p._2.threatening) }).flatten.toSeq
-  def getPossibleCells = Board.genCells(M, N).filterNot(p ⇒ nonFree contains (p)).toList
+  def getPossibleCells = allPos.filterNot(p ⇒ nonFree contains (p)).toList
 
   /**
    * Tries to Create a new piece on position if possible and no threatening the other pieces on the board

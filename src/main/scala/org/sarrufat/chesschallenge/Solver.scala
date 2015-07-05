@@ -56,14 +56,16 @@ class Solver(dimension: Dimension, pieces: Seq[PieceParam]) {
     val targetResLenght = seqPieces.length
     def internalSolver(pieces: List[Char]) = {
       val board = Board(dimension._1, dimension._2)
+      def comparePos(p1: Pos, p2: Pos) = (p1._1 * dimension._2 + p1._2) - (p2._1 * dimension._2 + p2._2)
       // Recursive Solver
-      def recSolver(positions: Positions, pieces: List[Char]): Unit = {
+      def recSolver(positions: Positions, pieces: List[Char], parentPos: Seq[ResultPos]): Unit = {
         // Compute next possible (non threatening) positions
         for (pos ← positions) {
+
           // Copy the actual board
           pieces match {
-            // Non empty pieces
-            case ptype :: tail ⇒ {
+            // Non empty pieces and skip permutations already processed
+            case ptype :: tail if (parentPos.isEmpty || parentPos.head._2 != ptype || comparePos(pos, parentPos.head._1) > 0) ⇒ {
               // try to create a new piece on this position
               board.tryNewPiece(ptype, pos) match {
                 // Success: then compute the next deeper level of the tree if more pieces to place on the board
@@ -71,7 +73,7 @@ class Solver(dimension: Dimension, pieces: Seq[PieceParam]) {
                   if (board.isSolved(targetResLenght))
                     results = results :+ board.toResult
                   else
-                    recSolver(board.getPossibleCells, tail)
+                    recSolver(board.getPossibleCells, tail, parentPos :+ (pos, ptype))
                   // Remove pieces -- shared array between probes
                   board.removePiece(piece)
                 // Not possible
@@ -79,11 +81,11 @@ class Solver(dimension: Dimension, pieces: Seq[PieceParam]) {
               }
             }
             // No more levels: if solved add to results
-            case Nil ⇒ // if (workBoard.isSolved(targetResLenght)) results = results :+ workBoard.toResult
+            case _ ⇒
           }
         }
       }
-      recSolver(board.getPossibleCells, pieces)
+      recSolver(board.getPossibleCells, pieces, Seq())
       board.tryCounter
     }
     val tc = internalSolver(seqPieces)
