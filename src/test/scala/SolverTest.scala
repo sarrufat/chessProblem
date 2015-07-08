@@ -15,11 +15,7 @@ class SolverTest extends FunSuite with Matchers {
     val solution = solver.solve
     solution.length should be(8)
   }
-  //  test("8x8 board containing 8N. Solver must return 5 solutions") {
-  //    val solver = Solver(4, 4)((8, 'N'))
-  //    val solution = solver.solve
-  //    solution.length should be(5)
-  //  }
+
   test("4x4 board containing 4Q. Solver must return 2 solutions") {
     val solver = Solver(4, 4)((4, 'Q'))
     val solution = solver.solve
@@ -35,9 +31,4 @@ class SolverTest extends FunSuite with Matchers {
     val solution = solver.solve
     solution.length should be(4)
   }
-  //  test("8x8 board containing 8Q. Solver must return 92 solutions") {
-  //    val solver = Solver(8, 8)((8, 'Q'))
-  //    val solution = solver.solve
-  //    solution.length should be(92)
-  //  }
 }

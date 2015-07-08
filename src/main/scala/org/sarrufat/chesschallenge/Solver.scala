@@ -28,7 +28,7 @@ class Solver(dimension: Dimension, pieces: Seq[PieceParam]) {
    */
   def printresult(res: ResultPositions) {
     println("")
-    def printlnsep = {
+    def printlnsep() = {
       val headS = for (x ← 0 until dimension._1) yield "-+"
       println("\n+" + headS.mkString)
     }
@@ -68,10 +68,8 @@ class Solver(dimension: Dimension, pieces: Seq[PieceParam]) {
               board.tryNewPiece(ptype, pos) match {
                 // Success: then compute the next deeper level of the tree if more pieces to place on the board
                 case Some(piece) ⇒
-                  if (board.isSolved(targetResLenght))
-                    results = results :+ board.toResult
-                  else
-                    recSolver(board.getPossibleCells, tail)
+                  if (board.isSolved(targetResLenght)) results = results :+ board.toResult
+                  else recSolver(board.getPossibleCells, tail)
                   // Remove pieces -- shared array between probes
                   board.removePiece(piece)
                 // Not possible
@@ -86,9 +84,7 @@ class Solver(dimension: Dimension, pieces: Seq[PieceParam]) {
       recSolver(board.getPossibleCells, pieces)
       board.tryCounter
     }
-    val tc = internalSolver(seqPieces)
-    //    println("tryCounter = " + tc)
-    // remove duplicates
+    internalSolver(seqPieces)
     val resMap = results.groupBy { _.toString }
     val res = for (m ← resMap) yield m._2.head
     res.toList
@@ -102,11 +98,8 @@ class Solver(dimension: Dimension, pieces: Seq[PieceParam]) {
     val t0 = System.currentTimeMillis();
     val results = solve
     val t1 = System.currentTimeMillis();
-    if (timing)
-      println(s"Found ${results.length} solutions in " + (t1 - t0).toDouble / 1000.0 + " secs.")
-    else
-      println(s"Found ${results.length} solutions")
-
+    if (timing) println(s"Found ${results.length} solutions in " + (t1 - t0).toDouble / 1000.0 + " secs.")
+    else println(s"Found ${results.length} solutions")
     if (print) results.foreach { printresult(_) }
   }
 }

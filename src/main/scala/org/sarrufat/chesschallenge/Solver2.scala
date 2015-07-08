@@ -30,7 +30,7 @@ class Solver2(dimension: Dimension, pieces: Seq[PieceParam]) {
    */
   def printresult(res: ResultPositions) {
     println("")
-    def printlnsep = {
+    def printlnsep() = {
       val headS = for (x ← 0 until dimension._1) yield "-+"
       println("\n+" + headS.mkString)
     }
@@ -96,11 +96,8 @@ class Solver2(dimension: Dimension, pieces: Seq[PieceParam]) {
           // Verify bno threatenin
           val currTree = resPos.map(_._1)
           if (!thrK.exists(currTree.contains(_))) {
-            if (keys.length() == 1) {
-              //              println(resPos :+ ((x, y), keys(0)))
-              results = results :+ ((resPos :+ ((x, y), keys(0))).sortBy { _._1 })
-            } else
-              recResul(keys.drop(1), thr ++ thrK, resPos ++ List(((x, y), k)))
+            if (keys.length() == 1) results = results :+ ((resPos :+ ((x, y), keys(0))).sortBy { _._1 })
+            else recResul(keys.drop(1), thr ++ thrK, resPos ++ List(((x, y), k)))
           }
         }
       }
@@ -128,11 +125,8 @@ class Solver2(dimension: Dimension, pieces: Seq[PieceParam]) {
     val t0 = System.currentTimeMillis();
     val results = solve
     val t1 = System.currentTimeMillis();
-    if (timing)
-      println(s"Found ${results.length} solutions in " + (t1 - t0).toDouble / 1000.0 + " secs.")
-    else
-      println(s"Found ${results.length} solutions")
-
+    if (timing) println(s"Found ${results.length} solutions in " + (t1 - t0).toDouble / 1000.0 + " secs.")
+    else println(s"Found ${results.length} solutions")
     if (print) results.foreach { printresult(_) }
   }
 }
