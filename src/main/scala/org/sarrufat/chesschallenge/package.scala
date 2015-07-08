@@ -12,4 +12,6 @@ package object chesschallenge {
   type ResultPos = (Pos, Char)
   type ResultPositions = List[ResultPos]
   type Results = List[ResultPositions]
+  // Type used by solver 2
+  type ThreateningVector = Vector[Vector[Pos]]
 }

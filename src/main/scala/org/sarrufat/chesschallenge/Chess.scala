@@ -21,27 +21,32 @@ case class Board(M: Int, N: Int) {
   //  var pieces = Map[Pos, Piece]().empty
   val pMatrix = Array.ofDim[Piece](M, N)
   // Tries count
-  var tryCounter = 0l
+  private var _tryCounter = 0L
+  def tryCounter = _tryCounter
 
   def isInside(pos: Pos) = pos._1 >= 0 && pos._1 < M && pos._2 >= 0 && pos._2 < N
   def checkFreePos(pos: Pos) = pMatrix(pos._1)(pos._2) == null && !nonFree.contains(pos)
+  private def createNew(pt: Char, pos: Pos) = pt match {
+    case 'K' ⇒ pMatrix(pos._1)(pos._2) = new King(pos, this)
+    case 'B' ⇒ pMatrix(pos._1)(pos._2) = new Bishop(pos, this)
+    case 'R' ⇒ pMatrix(pos._1)(pos._2) = new Rook(pos, this)
+    case 'Q' ⇒ pMatrix(pos._1)(pos._2) = new Queen(pos, this)
+    case 'N' ⇒ pMatrix(pos._1)(pos._2) = new Knight(pos, this)
+    case _   ⇒ throw new Exception(s"Unknown piece type '$pt'")
+  }
   /**
    * Creates a new piece on position if possible
    * pt represents the type (K, Q, B R, N)
    */
   def newPiece(pt: Char, pos: Pos): Option[Piece] = {
+
     if (checkFreePos(pos)) {
-      pt match {
-        case 'K' ⇒ pMatrix(pos._1)(pos._2) = new King(pos, this)
-        case 'B' ⇒ pMatrix(pos._1)(pos._2) = new Bishop(pos, this)
-        case 'R' ⇒ pMatrix(pos._1)(pos._2) = new Rook(pos, this)
-        case 'Q' ⇒ pMatrix(pos._1)(pos._2) = new Queen(pos, this)
-        case 'N' ⇒ pMatrix(pos._1)(pos._2) = new Knight(pos, this)
-        case _   ⇒ throw new Exception(s"Unknown piece type '$pt'")
-      }
+      createNew(pt, pos)
       Some(pMatrix(pos._1)(pos._2))
-    } else
+    } else {
       None
+    }
+
   }
   def removePiece(piece: Piece) = pMatrix(piece.pos._1)(piece.pos._2) = null
   def nonFree = {
@@ -61,14 +66,15 @@ case class Board(M: Int, N: Int) {
    * Tries to Create a new piece on position if possible and no threatening the other pieces on the board
    */
   def tryNewPiece(pt: Char, pos: Pos): Option[Piece] = {
-    tryCounter += 1
+    _tryCounter += 1
     val np = newPiece(pt, pos)
     np match {
       case Some(curPiece) ⇒ if (curPiece.threatening exists { p ⇒ pMatrix(p._1)(p._2) != null }) {
         removePiece(curPiece)
         None
-      } else
+      } else {
         np
+      }
       case None ⇒ None
     }
   }
@@ -108,10 +114,8 @@ sealed trait Piece {
    */
   final protected def vincr(pos: Pos, incr: Pos): Positions = {
     val newPos = (pos._1 + incr._1, pos._2 + incr._2)
-    if (board isInside (newPos))
-      newPos +: vincr(newPos, incr)
-    else
-      List()
+    if (board isInside (newPos)) newPos +: vincr(newPos, incr)
+    else List()
   }
   def toChar: Char
 }
